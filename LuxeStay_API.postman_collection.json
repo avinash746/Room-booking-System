@@ -1,0 +1,357 @@
+{
+  "info": {
+    "name": "LuxeStay Room Booking API",
+    "description": "Complete API collection — Auth, Rooms, Bookings",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000/api", "type": "string" },
+    { "key": "token",    "value": "",                          "type": "string" }
+  ],
+  "item": [
+
+    {
+      "name": "🔐 Auth",
+      "item": [
+
+        {
+          "name": "1. Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Naya user register karo. Name, email, password bhejo. Token milega response mein."
+          },
+          "response": [
+            {
+              "name": "Register Success",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Account created successfully\",\n  \"data\": {\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"user\": {\n      \"id\": 1,\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\"\n    }\n  }\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "2. Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.token) {",
+                  "  pm.collectionVariables.set('token', res.data.token);",
+                  "  console.log('Token saved:', res.data.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Login karo. Token automatically {{token}} variable mein save ho jayega."
+          },
+          "response": [
+            {
+              "name": "Login Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"data\": {\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"user\": {\n      \"id\": 1,\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\"\n    }\n  }\n}"
+            },
+            {
+              "name": "Login Failed",
+              "status": "Unauthorized",
+              "code": 401,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Invalid email or password\"\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "3. Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "profile"]
+            },
+            "description": "Apna profile dekho. Login ke baad token lagega."
+          },
+          "response": [
+            {
+              "name": "Profile Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"created_at\": \"2025-01-01T00:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        }
+
+      ]
+    },
+
+    {
+      "name": "🏨 Rooms",
+      "item": [
+
+        {
+          "name": "1. Get All Rooms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/rooms",
+              "host": ["{{base_url}}"],
+              "path": ["rooms"]
+            },
+            "description": "Saari rooms ki list. Token nahi chahiye — public endpoint."
+          },
+          "response": [
+            {
+              "name": "All Rooms Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": 1,\n      \"name\": \"Deluxe Ocean View Suite\",\n      \"description\": \"Wake up to breathtaking ocean panoramas...\",\n      \"price_per_night\": \"299.00\",\n      \"capacity\": 2,\n      \"image_url\": \"https://images.unsplash.com/...\",\n      \"amenities\": [\"King Bed\", \"Ocean View\", \"Jacuzzi\"]\n    },\n    {\n      \"id\": 2,\n      \"name\": \"Executive Business Room\",\n      \"price_per_night\": \"189.00\",\n      \"capacity\": 1\n    }\n  ]\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "2. Get Room by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/rooms/1",
+              "host": ["{{base_url}}"],
+              "path": ["rooms", "1"]
+            },
+            "description": "Ek specific room ki detail. URL mein ID change karo jaise /rooms/2, /rooms/3 etc."
+          },
+          "response": [
+            {
+              "name": "Room Found",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 1,\n    \"name\": \"Deluxe Ocean View Suite\",\n    \"description\": \"Wake up to breathtaking ocean panoramas in this elegant suite.\",\n    \"price_per_night\": \"299.00\",\n    \"capacity\": 2,\n    \"image_url\": \"https://images.unsplash.com/photo-1631049307264\",\n    \"amenities\": [\"King Bed\", \"Ocean View\", \"Private Balcony\", \"Jacuzzi\", \"Mini Bar\", \"Free WiFi\"]\n  }\n}"
+            },
+            {
+              "name": "Room Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Room not found\"\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "3. Check Availability",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rooms/1/availability?startDate=2025-06-01&endDate=2025-06-05",
+              "host": ["{{base_url}}"],
+              "path": ["rooms", "1", "availability"],
+              "query": [
+                { "key": "startDate", "value": "2025-06-01", "description": "Check-in date YYYY-MM-DD" },
+                { "key": "endDate",   "value": "2025-06-05", "description": "Check-out date YYYY-MM-DD" }
+              ]
+            },
+            "description": "Room ki availability check karo. Login token chahiye."
+          },
+          "response": [
+            {
+              "name": "Room Available",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"available\": true,\n    \"roomId\": 1,\n    \"startDate\": \"2025-06-01\",\n    \"endDate\": \"2025-06-05\",\n    \"nights\": 4,\n    \"totalPrice\": 1196.00\n  }\n}"
+            },
+            {
+              "name": "Room Not Available",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"available\": false,\n    \"message\": \"Room is already booked for selected dates\"\n  }\n}"
+            }
+          ]
+        }
+
+      ]
+    },
+
+    {
+      "name": "📅 Bookings",
+      "item": [
+
+        {
+          "name": "1. Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["bookings"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomId\": 1,\n  \"startDate\": \"2025-06-01\",\n  \"endDate\": \"2025-06-05\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Naya booking banao. Login token zaruri hai. Overlap hogi toh 409 error aayega."
+          },
+          "response": [
+            {
+              "name": "Booking Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Booking confirmed!\",\n  \"data\": {\n    \"id\": 1,\n    \"roomId\": 1,\n    \"roomName\": \"Deluxe Ocean View Suite\",\n    \"startDate\": \"2025-06-01\",\n    \"endDate\": \"2025-06-05\",\n    \"nights\": 4,\n    \"totalPrice\": \"1196.00\",\n    \"status\": \"confirmed\"\n  }\n}"
+            },
+            {
+              "name": "Dates Already Booked",
+              "status": "Conflict",
+              "code": 409,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Room is already booked for selected dates\"\n}"
+            },
+            {
+              "name": "Validation Error",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"message\": \"startDate and endDate are required\"\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "2. Get My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings/my",
+              "host": ["{{base_url}}"],
+              "path": ["bookings", "my"]
+            },
+            "description": "Apni saari bookings dekho — confirmed aur cancelled dono."
+          },
+          "response": [
+            {
+              "name": "My Bookings",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": 1,\n      \"room_id\": 1,\n      \"room_name\": \"Deluxe Ocean View Suite\",\n      \"room_image\": \"https://images.unsplash.com/...\",\n      \"start_date\": \"2025-06-01\",\n      \"end_date\": \"2025-06-05\",\n      \"total_price\": \"1196.00\",\n      \"status\": \"confirmed\",\n      \"created_at\": \"2025-01-15T10:30:00.000Z\"\n    }\n  ]\n}"
+            },
+            {
+              "name": "No Bookings",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": []\n}"
+            }
+          ]
+        },
+
+        {
+          "name": "3. Cancel Booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bookings/1/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["bookings", "1", "cancel"]
+            },
+            "description": "Booking cancel karo. URL mein booking ID change karo. Sirf apni booking cancel ho sakti hai."
+          },
+          "response": [
+            {
+              "name": "Cancel Success",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Booking cancelled successfully\",\n  \"data\": {\n    \"id\": 1,\n    \"status\": \"cancelled\"\n  }\n}"
+            },
+            {
+              "name": "Already Cancelled",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"message\": \"Booking is already cancelled\"\n}"
+            },
+            {
+              "name": "Not Your Booking",
+              "status": "Forbidden",
+              "code": 403,
+              "body": "{\n  \"success\": false,\n  \"message\": \"You are not authorized to cancel this booking\"\n}"
+            }
+          ]
+        }
+
+      ]
+    },
+
+    {
+      "name": "✅ Health Check",
+      "item": [
+        {
+          "name": "API Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Server chal raha hai ya nahi check karo."
+          },
+          "response": [
+            {
+              "name": "Server OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Room Booking API is running 🏨\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+
+  ]
+}
