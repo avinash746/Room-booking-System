@@ -365,3 +365,12 @@ Built as a full-stack room booking system assignment.
 - Frontend: React 18 + Custom CSS
 - Backend: Node.js + Express
 - Database: MySQL 8 with transaction-safe booking
+
+## Screenshots
+<img width="1888" height="910" alt="image" src="https://github.com/user-attachments/assets/ef7c504e-0781-44e3-b54b-f2dc4ebf5b37" />
+
+<img width="1911" height="904" alt="image" src="https://github.com/user-attachments/assets/94ffcc97-d73d-4842-9073-b84a5d2c5d10" />
+
+<img width="1897" height="911" alt="image" src="https://github.com/user-attachments/assets/3dc2ff96-09e2-4224-b63a-f4e26522d81a" />
+
+<img width="1883" height="921" alt="image" src="https://github.com/user-attachments/assets/9299cd76-c20d-42e1-adc6-573fc30e791c" />
