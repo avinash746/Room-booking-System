@@ -1,0 +1,155 @@
+================================================================
+  ARCHITECTURE NOTES — Room Booking System (LuxeStay)
+================================================================
+
+----------------------------------------------------------------
+1. HOW OVERLAPPING BOOKINGS ARE PREVENTED
+----------------------------------------------------------------
+
+Problem:
+  Two users try to book the same room for the same dates at the
+  exact same time. Without protection, both could succeed —
+  leaving the room double-booked.
+
+Solution — Database Transaction + Row Locking:
+
+  Every booking goes through these steps inside a transaction:
+
+  Step 1: BEGIN TRANSACTION
+          (lock the process so no one else can interfere)
+
+  Step 2: SELECT ... FOR UPDATE
+          Check if any CONFIRMED booking already exists for
+          the same room that overlaps the requested dates.
+
+          Overlap is detected using this simple rule:
+            existing.start_date < new.end_date
+            AND
+            existing.end_date > new.start_date
+
+          This catches every possible overlap:
+            - New booking starts in the middle of an existing one
+            - New booking ends in the middle of an existing one
+            - New booking fully covers an existing one
+            - New booking is fully inside an existing one
+
+  Step 3a: If conflict found  ROLLBACK  return error 409
+  Step 3b: If no conflict     INSERT booking  COMMIT
+
+  Extra protection:
+    - CHECK CONSTRAINT in DB: end_date must be > start_date
+    - Index on (room_id, start_date, end_date, status) makes
+      the overlap check fast even with thousands of bookings
+
+  In simple words:
+    "Check the room is free, lock it, book it — all in one
+     atomic step so no one else can sneak in between."
+
+
+----------------------------------------------------------------
+2. WHY THE PROJECT IS STRUCTURED THIS WAY
+----------------------------------------------------------------
+
+Backend is split into layers (each layer has ONE job):
+
+  server.js         Start the app, load middleware, register routes
+  routes/           Define URL paths only  (e.g. POST /bookings)
+  controllers/      Validate input, send HTTP response
+  services/         All business logic and database queries
+  middleware/       Shared tasks: check JWT token, handle errors
+  config/db.js      One place to manage the database connection
+  db/schema.sql     Single file that defines all tables
+
+  Why this separation?
+    - Easy to find bugs: each file does only one thing
+    - Easy to test: services can be tested without HTTP
+    - Easy to change: swapping MySQL for another DB only
+      requires changing service files, nothing else
+
+Frontend is split by purpose:
+
+  pages/            One file per screen (Login, Dashboard etc.)
+  components/       Reusable UI pieces (RoomCard, BookingCard)
+  context/          Global login state shared across all pages
+  services/api.js   All API calls in one place
+  utils/helpers.js  Date formatting, price calculation helpers
+  styles/global.css One CSS file for the whole app
+
+  Why this separation?
+    - Adding a new page = just add one file in pages/
+    - Changing a button style = change it once in global.css
+    - Clear and predictable for anyone reading the code
+
+
+----------------------------------------------------------------
+3. HOW FRONTEND AND BACKEND COMMUNICATE
+----------------------------------------------------------------
+
+All communication is HTTP + JSON (REST API).
+
+  Login / Register flow:
+    1. User fills form on React frontend
+    2. Axios sends POST request to Express backend
+    3. Backend checks credentials, returns a JWT token
+    4. Frontend saves token in localStorage
+    5. Every future request includes the token in the header:
+         Authorization: Bearer <token>
+    6. Backend verifies the token before allowing access
+
+  Data flow example (booking a room):
+    React Page
+      calls api.js function
+        Axios sends POST /api/bookings with token
+          Backend middleware checks token
+            Controller validates input
+              Service checks overlap + inserts booking
+                Response comes back as JSON
+                  React updates the UI
+
+  Consistent API response format:
+    Success: { "success": true,  "data": { ... } }
+    Error:   { "success": false, "message": "..." }
+
+  Auto logout:
+    If the token expires, the backend returns 401.
+    Axios interceptor catches this and redirects to /login
+    automatically — the user does not need to do anything.
+
+
+----------------------------------------------------------------
+4. HOW TO SCALE THIS SYSTEM IN THE FUTURE
+----------------------------------------------------------------
+
+Database scaling:
+  - Add a READ REPLICA so heavy read queries (browsing rooms,
+    checking availability) hit a separate server, keeping the
+    main DB free for writes
+  - Add REDIS CACHE to store room listings in memory so the
+    database is not hit on every page load
+  - Cache is cleared automatically whenever a new booking is made
+
+Backend scaling:
+  - Wrap the app in DOCKER so it can run on any server easily
+  - Run MULTIPLE INSTANCES behind a load balancer — because JWT
+    is stateless, no shared session storage is needed
+  - Add a MESSAGE QUEUE (e.g. RabbitMQ) for slow tasks like
+    sending booking confirmation emails, so the API stays fast
+
+Frontend scaling:
+  - Move to NEXT.JS for server-side rendering so room pages
+    load faster and appear in Google search results
+  - Use REACT QUERY to cache API responses on the client so
+    pages do not re-fetch data unnecessarily
+
+Infrastructure:
+  - Add GITHUB ACTIONS for automatic testing and deployment
+    every time code is pushed to the main branch
+  - Use separate .env files for development, staging, and
+    production environments
+
+  Simple summary:
+    Start  Single server + MySQL
+    Growth Add replicas + Redis cache + load balancer
+    Scale  Microservices + Docker + message queues
+
+================================================================
