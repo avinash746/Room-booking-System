@@ -374,3 +374,5 @@ Built as a full-stack room booking system assignment.
 <img width="1897" height="911" alt="image" src="https://github.com/user-attachments/assets/3dc2ff96-09e2-4224-b63a-f4e26522d81a" />
 
 <img width="1883" height="921" alt="image" src="https://github.com/user-attachments/assets/9299cd76-c20d-42e1-adc6-573fc30e791c" />
+
+<img width="1896" height="904" alt="image" src="https://github.com/user-attachments/assets/343cbe37-6f00-4635-befb-d80ebc7d0821" />
